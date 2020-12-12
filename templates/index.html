@@ -1,0 +1,121 @@
+<html>
+    <head>
+        <title>Todo App</title>
+        <style>
+          .hidden {
+            display: none;
+          }
+          ul {
+            list-style: none;
+            padding: 0;
+            margin: none;
+            width: 300px;
+          }
+          li {
+            clear: both;
+          }
+          li button {
+            -webkit-appearance: none;
+            border: none;
+            outline: none;
+            color: red;
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+            background-color: white;
+          }
+        </style>
+    </head>
+
+    <body>
+        <form id="form">
+          <input type="text" id="description" name="description" />
+          <input type="submit" name="Create" />
+        </form>
+        <ul id="todo">
+          {% for item in data %}
+          <li> 
+          <input class='check-completed' data-id='{{ item.id }}' type='checkbox' {% if item.completed %} checked {% endif %}> {{ item.description }} 
+          <button class='remove-todo' data-id='{{ item.id }}'> &cross; </button>
+          </li>
+          {% endfor %}
+        </ul>
+        <script>
+          // crossbuttons = document.querySelectorAll('.remove-todo');
+          // for (let i = 0; i < crossbuttons.length; i++) {
+            // const crossbutton = crossbuttons[i];
+            // crossbutton.onclick = function(e) {
+            //   const todoId = e.target.dataset['id'];
+            //   fetch('/todo/delete', {
+            //     method: 'POST',
+            //     body: JSON.stringify({
+            //       "id": todoId,
+            //     }),
+            //     headers: {
+            //       'Content-Type': 'application/json',
+            //     }
+            //   })
+            //   .then(function () {
+            //     document.getElementById('error').className='hidden';
+            //   })
+            //   .catch(function() {
+            //   document.getElementById('error').className = '';
+            // console.log('event', e);
+            // }
+          // }
+
+
+          checkboxes = document.querySelectorAll('.check-completed');
+          for (let i = 0; i < checkboxes.length; i++) {
+            const checkbox = checkboxes[i];
+            checkbox.onchange = function(e) {
+              const newCheckedStatus = e.target.checked;
+              const todoId = e.target.dataset['id'];
+              fetch('/todo/' + todoId + '/set-completed', {
+                method: 'POST',
+                body: JSON.stringify({
+                  'completed': newCheckedStatus,
+                }),
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              })
+              .then(function () {
+                document.getElementById('error').className='hidden';
+              })
+              .catch(function() {
+              document.getElementById('error').className = '';
+            })
+            }
+          }
+
+          const descInput = document.getElementById('description');
+          document.getElementById('form').onsubmit = function(e) {
+            e.preventDefault();
+            const new_todo = descInput.value;
+            descInput.value = '';
+            fetch('/todo/create', {
+              method: 'POST',
+              body: JSON.stringify({
+                'description': new_todo,
+              }),
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            })
+            .then(response => response.json())
+            .then(jsonResponse => {
+              console.log('response', jsonResponse);
+              li = document.createElement('li');
+              li.innerText = new_todo;
+              document.getElementById('todo').appendChild(li);
+              document.getElementById('error').className = 'hidden';
+            })
+            .catch(function() {
+              document.getElementById('error').className = '';
+            })
+          }
+        </script>
+
+    </body>
+</html>
