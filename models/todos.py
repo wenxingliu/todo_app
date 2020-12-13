@@ -22,5 +22,5 @@ class TodoList(db.Model):
 	name = db.Column(db.String(), nullable=False)
 	todo = db.relationship('todo', backref='list', lazy=True)
 
-    def __repr__(self):
-        return f'<Todo List {self.id}: {self.name}>'
+	def __repr__(self):
+		return f'<Todo List {self.id}: {self.name}>'
