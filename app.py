@@ -38,6 +38,8 @@ def create_todo():
         new_todo = Todo(description=request.get_json()['description'])
         db.session.add(new_todo)
         db.session.commit()
+        body['id'] = new_todo.id
+        body['completed'] = new_todo.completed
         body['description'] = new_todo.description
     except:
         db.session.rollback()
@@ -65,17 +67,17 @@ def set_completed_status(todo_id):
     return redirect(url_for('index'))
 
 
-# @app.route('/todo/delete', methods=['POST'])
-# def remove_item():
-#     try:
-#         todo_id = request.get_json()['id']
-#         Todo.query.get(todo_id).delete()
-#         db.session.commit()
-#     except:
-#         db.session.rollback()
-#     finally:
-#         db.session.close()
-#     return redirect(url_for('index'))
+@app.route('/todo/<todo_id>', methods=['DELETE'])
+def remove_item(todo_id):
+    try:
+        Todo.query.filter_by(id=todo_id).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+    finally:
+        db.session.close()
+    return jsonify({ 'success': True })
+
 
 
 if __name__ == '__main__':

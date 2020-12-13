@@ -32,38 +32,36 @@
           <input type="text" id="description" name="description" />
           <input type="submit" name="Create" />
         </form>
+
+        <div id="error" class="hidden">Something went wrong!</div>
+        
         <ul id="todo">
           {% for item in data %}
           <li> 
-          <input class='check-completed' data-id='{{ item.id }}' type='checkbox' {% if item.completed %} checked {% endif %}> {{ item.description }} 
-          <button class='remove-todo' data-id='{{ item.id }}'> &cross; </button>
+          <input class='check-completed' id='check-box' data-id='{{ item.id }}' type='checkbox' {% if item.completed %} checked {% endif %}> {{ item.description }} 
+          <button class='remove-todo' id='delete-button' data-id='{{ item.id }}'> &cross; </button>
           </li>
           {% endfor %}
         </ul>
-        <script>
-          // crossbuttons = document.querySelectorAll('.remove-todo');
-          // for (let i = 0; i < crossbuttons.length; i++) {
-            // const crossbutton = crossbuttons[i];
-            // crossbutton.onclick = function(e) {
-            //   const todoId = e.target.dataset['id'];
-            //   fetch('/todo/delete', {
-            //     method: 'POST',
-            //     body: JSON.stringify({
-            //       "id": todoId,
-            //     }),
-            //     headers: {
-            //       'Content-Type': 'application/json',
-            //     }
-            //   })
-            //   .then(function () {
-            //     document.getElementById('error').className='hidden';
-            //   })
-            //   .catch(function() {
-            //   document.getElementById('error').className = '';
-            // console.log('event', e);
-            // }
-          // }
 
+        <script type="text/javascript">
+          crossbuttons = document.querySelectorAll('.remove-todo');
+          for (let i = 0; i < crossbuttons.length; i++) {
+            const crossbutton = crossbuttons[i];
+            crossbutton.onclick = function(e) {
+              console.log('event', e);
+              const todoId = e.target.dataset['id'];
+              fetch('/todo/' + todoId, {
+                method: 'DELETE',
+              })
+              .then(function () {
+                document.getElementById('error').className='hidden';
+              })
+              .catch(function() {
+              document.getElementById('error').className = '';
+            })
+            }
+          };
 
           checkboxes = document.querySelectorAll('.check-completed');
           for (let i = 0; i < checkboxes.length; i++) {
@@ -80,14 +78,8 @@
                   'Content-Type': 'application/json',
                 }
               })
-              .then(function () {
-                document.getElementById('error').className='hidden';
-              })
-              .catch(function() {
-              document.getElementById('error').className = '';
-            })
             }
-          }
+          };
 
           const descInput = document.getElementById('description');
           document.getElementById('form').onsubmit = function(e) {
@@ -103,18 +95,36 @@
                 'Content-Type': 'application/json',
               }
             })
-            .then(response => response.json())
-            .then(jsonResponse => {
-              console.log('response', jsonResponse);
+            .then(function(response) {response.json()})
+            .then(function(jsonResponse) {
+              console.log(jsonResponse);
+              
               li = document.createElement('li');
-              li.innerText = new_todo;
+              
+              const checkbox = document.createElement('input');
+              checkbox.className = 'check-completed';
+              checkbox.type = 'checkbox';
+              checkbox.setAttribute('data-id', jsonResponse.id);
+              li.appendChild(checkbox);
+
+              // const text = document.createTextNode(' ' + jsonResponse.description);
+              // li.appendChild(text); 
+              // li.innerHTML = jsonResponse.description;
+
+              const deleteButton = document.createElement('button');
+              deleteButton.className = 'remove-todo';
+              deleteButton.setAttribute('data-id', jsonResponse.id);
+              deleteBtn.innerHTML = '&cross;';
+              li.appendChild(deleteButton);
+
               document.getElementById('todo').appendChild(li);
               document.getElementById('error').className = 'hidden';
             })
             .catch(function() {
               document.getElementById('error').className = '';
             })
-          }
+          };
+
         </script>
 
     </body>
