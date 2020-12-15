@@ -2,12 +2,19 @@ from flask import render_template, request, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 
 from config import db, app, migrate
-from models.todos import Todo
+from models.todos import Todo, TodoList
 
 @app.route('/')
 def index():
-    todo_list = Todo.query.order_by('id').all()
-    return render_template('index.html', data=todo_list)
+    return redirect(url_for('get_list', list_id=1))
+
+
+@app.route('/list/<list_id>')
+def get_list(list_id):
+    todos = Todo.query.filter_by(list_id=list_id).order_by('id').all()
+    lists = TodoList.query.order_by('id').all()
+    active_list = TodoList.query.get(list_id)
+    return render_template('index.html', active_list=active_list, todos=todos, lists=lists)
 
 
 @app.route('/todo/create', methods=['POST'])
@@ -16,10 +23,12 @@ def create_todo():
     body = {}
 
     try:
-        new_todo = Todo(description=request.get_json()['description'])
+        new_todo = Todo(description=request.get_json()['description'],
+                        list_id=request.get_json()['list_id'])
         db.session.add(new_todo)
         db.session.commit()
         body['id'] = new_todo.id
+        body['list_id'] = new_todo.list_id
         body['description'] = new_todo.description
         body['completed'] = new_todo.completed
     except:
