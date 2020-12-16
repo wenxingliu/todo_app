@@ -33,11 +33,21 @@
 
     <body>
       <div class="lists-wrapper">
+        <h4>Todo Lists</h4>
+
+        <form id="create-list-form">
+          <input type="text" id="list-name" name="list-name" />
+          <input type="submit" name="create list" />
+        </form>
+
+        <div id="list-error" class="hidden">Something went wrong!</div>
+
         <ul id="lists">
           {% for list in lists %}
           <li>
             <a href="/list/{{ list.id }}">
               {{ list.name }}
+              <button class='delete-list' data-id='{{ list.id }}'> &cross; </button>
             </a>
           </li>
           {% endfor %}
@@ -46,9 +56,9 @@
         <div class="todos-wrapper">
           <h4>{{ active_list.name }}</h4>
 
-          <form id="form">
+          <form id="create-todo-form">
             <input type="text" id="description" name="description" />
-            <input type="submit" name="Create" />
+            <input type="submit" name="create todo" />
           </form>
 
         <div id="error" class="hidden">Something went wrong!</div>
@@ -58,16 +68,56 @@
           <li> 
           <input class='check-completed' data-id='{{ todo.id }}' type='checkbox' {% if todo.completed %} checked {% endif %}> 
           {{ todo.description }} 
-          <button class='delete-button' data-id='{{ todo.id }}'> &cross; </button>
+          <button class='delete-todo' data-id='{{ todo.id }}'> &cross; </button>
           </li>
           {% endfor %}
         </ul>
 
         <script type="text/javascript">
-          crossbuttons = document.querySelectorAll('.delete-button');
-          for (let i = 0; i < crossbuttons.length; i++) {
-            const crossbutton = crossbuttons[i];
-            crossbutton.onclick = function(e) {
+          // Todo Lists
+          // create list
+          const listInput = document.getElementById('list-name');
+          document.getElementById('create-list-form').onsubmit = function(e) {
+            e.preventDefault();
+            const listName = listInput.value;
+            listInput.value = '';
+            fetch('/list/create', {
+              method: 'POST',
+              body: JSON.stringify({
+                'name': listName
+              }),
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            })
+          };
+
+          // delete list
+          deleteListButtons = document.querySelectorAll('.delete-list');
+          for (let i = 0; i < deleteListButtons.length; i++) {
+            const deleteListButton = deleteListButtons[i];
+            deleteListButton.onclick = function(e) {
+              console.log('event', e);
+              const listId = e.target.dataset['id'];
+              fetch('/list/' + listId, {
+                method: 'DELETE',
+              })
+              .then(function () {
+                document.getElementById('list-error').className='hidden';
+              })
+              .catch(function() {
+              document.getElementById('list-error').className = '';
+            })
+            }
+          };
+
+
+          // TODOs
+          // delete todo
+          deleteTodoButtons = document.querySelectorAll('.delete-todo');
+          for (let i = 0; i < deleteTodoButtons.length; i++) {
+            const deleteTodoButton = deleteTodoButtons[i];
+            deleteTodoButton.onclick = function(e) {
               console.log('event', e);
               const todoId = e.target.dataset['id'];
               fetch('/todo/' + todoId, {
@@ -82,6 +132,7 @@
             }
           };
 
+          // mark todo as completed or incompleted
           checkboxes = document.querySelectorAll('.check-completed');
           for (let i = 0; i < checkboxes.length; i++) {
             const checkbox = checkboxes[i];
@@ -100,8 +151,9 @@
             }
           };
 
+          // create new todo 
           const descInput = document.getElementById('description');
-          document.getElementById('form').onsubmit = function(e) {
+          document.getElementById('create-todo-form').onsubmit = function(e) {
             e.preventDefault();
             const desc = descInput.value;
             descInput.value = '';
@@ -109,7 +161,7 @@
               method: 'POST',
               body: JSON.stringify({
                 'description': desc,
-                'list_id': {{ active_list.id }}
+                'list_id': '{{ active_list.id }}',
               }),
               headers: {
                 'Content-Type': 'application/json',
@@ -128,7 +180,7 @@
               li.appendChild(text);
 
               const deleteBtn = document.createElement('button');
-              deleteBtn.className = 'delete-button';
+              deleteBtn.className = 'delete-todo';
               deleteBtn.setAttribute('data-id', jsonResponse.id);
               deleteBtn.innerHTML = '&cross;';
               li.appendChild(deleteBtn);
@@ -140,7 +192,8 @@
               console.error('Error occurred');
               document.getElementById('error').className = '';
             })
-          };
+          }
+          ;
         </script>
 
     </body>

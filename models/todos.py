@@ -20,6 +20,7 @@ class TodoList(db.Model):
 
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(), nullable=False)
+	completed = db.Column(db.Boolean, nullable=False, server_default='false')
 	todo = db.relationship(Todo, backref='list', lazy=True)
 
 	def __repr__(self):

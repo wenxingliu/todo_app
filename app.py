@@ -17,6 +17,47 @@ def get_list(list_id):
     return render_template('index.html', active_list=active_list, todos=todos, lists=lists)
 
 
+@app.route('/list/create', methods=['POST'])
+def create_list():
+    error = False
+    body = {}
+
+    try:
+        new_list = TodoList(name=request.get_json()['name'])
+        db.session.add(new_list)
+        db.session.commit()
+        new_list_id = new_list.id
+    except:
+        db.session.rollback()
+        error = True
+    finally:
+        db.session.close()
+
+    if error:
+        abort (400)
+    else:
+        return redirect(url_for('get_list', list_id=new_list_id))
+
+
+@app.route('/list/<list_id>', methods=['DELETE'])
+def delete_list(list_id):
+    error = False
+    try:
+        Todo.query.filter_by(list_id=list_id).delete()
+        TodoList.query.filter_by(id=list_id).delete()
+        db.session.commit()
+    except:
+        db.session.rollback()
+        error = True
+    finally:
+        db.session.close()
+
+    if error:
+        abort (400)
+    else:
+        return jsonify({ 'success': True })
+
+
 @app.route('/todo/create', methods=['POST'])
 def create_todo():
     error = False
