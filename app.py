@@ -46,6 +46,11 @@ def set_completed_status_list(list_id):
         new_completed_status = request.get_json()['completed']
         selectedList = TodoList.query.get(list_id)
         selectedList.completed = new_completed_status
+
+        list_todos = Todo.query.filter_by(list_id=list_id)
+        for todo in list_todos:
+            todo.completed = new_completed_status
+        
         db.session.commit()
     except:
         db.session.rollback()
