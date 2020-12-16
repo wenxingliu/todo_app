@@ -45,6 +45,7 @@
         <ul id="lists">
           {% for list in lists %}
           <li>
+            <input class='check-completed-list' data-id='{{ list.id }}' type='checkbox' {% if list.completed %} checked {% endif %}> 
             <a href="/list/{{ list.id }}">
               {{ list.name }}
               <button class='delete-list' data-id='{{ list.id }}'> &cross; </button>
@@ -66,7 +67,7 @@
         <ul id="todo">
           {% for todo in todos %}
           <li> 
-          <input class='check-completed' data-id='{{ todo.id }}' type='checkbox' {% if todo.completed %} checked {% endif %}> 
+          <input class='check-completed-todo' data-id='{{ todo.id }}' type='checkbox' {% if todo.completed %} checked {% endif %}> 
           {{ todo.description }} 
           <button class='delete-todo' data-id='{{ todo.id }}'> &cross; </button>
           </li>
@@ -90,6 +91,41 @@
                 'Content-Type': 'application/json',
               }
             })
+            .then(response => response.json())
+            .then(jsonResponse => {
+              const listName = jsonResponse.name;
+              const listId = jsonResponse.id;
+              const liList = document.createElement('li');
+              
+              liList.innerHTML = jsonResponse['name'];
+
+              document.getElementById('lists').appendChild(liList);
+              document.getElementById('list-error').className = 'hidden';
+              window.location.reload(true);
+            })
+            .catch(function() {
+              console.error('Error occurred');
+              document.getElementById('list-error').className = '';
+            })
+          };
+
+          // mark list as completed or incompleted
+          listCheckboxes = document.querySelectorAll('.check-completed-list');
+          for (let i = 0; i < listCheckboxes.length; i++) {
+            const listCheckbox = listCheckboxes[i];
+            listCheckbox.onchange = function(e) {
+              const newListCheckedStatus = e.target.checked;
+              const listId = e.target.dataset['id'];
+              fetch('/list/' + listId + '/set-completed', {
+                method: 'POST',
+                body: JSON.stringify({
+                  'completed': newListCheckedStatus,
+                }),
+                headers: {
+                  'Content-Type': 'application/json',
+                }
+              })
+            }
           };
 
           // delete list
@@ -133,16 +169,16 @@
           };
 
           // mark todo as completed or incompleted
-          checkboxes = document.querySelectorAll('.check-completed');
-          for (let i = 0; i < checkboxes.length; i++) {
-            const checkbox = checkboxes[i];
-            checkbox.onchange = function(e) {
-              const newCheckedStatus = e.target.checked;
+          todoCheckboxes = document.querySelectorAll('.check-completed-todo');
+          for (let i = 0; i < todoCheckboxes.length; i++) {
+            const todoCheckbox = todoCheckboxes[i];
+            todoCheckbox.onchange = function(e) {
+              const newTodoCheckedStatus = e.target.checked;
               const todoId = e.target.dataset['id'];
               fetch('/todo/' + todoId + '/set-completed', {
                 method: 'POST',
                 body: JSON.stringify({
-                  'completed': newCheckedStatus,
+                  'completed': newTodoCheckedStatus,
                 }),
                 headers: {
                   'Content-Type': 'application/json',

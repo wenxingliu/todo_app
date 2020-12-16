@@ -26,7 +26,8 @@ def create_list():
         new_list = TodoList(name=request.get_json()['name'])
         db.session.add(new_list)
         db.session.commit()
-        new_list_id = new_list.id
+        body['id'] = new_list.id
+        body['name'] = new_list.name
     except:
         db.session.rollback()
         error = True
@@ -36,7 +37,21 @@ def create_list():
     if error:
         abort (400)
     else:
-        return redirect(url_for('get_list', list_id=new_list_id))
+        return jsonify(body)
+
+
+@app.route('/list/<list_id>/set-completed', methods=['POST'])
+def set_completed_status_list(list_id):
+    try:
+        new_completed_status = request.get_json()['completed']
+        selectedList = TodoList.query.get(list_id)
+        selectedList.completed = new_completed_status
+        db.session.commit()
+    except:
+        db.session.rollback()
+    finally:
+        db.session.close()
+    return redirect(url_for('get_list', list_id=list_id))
 
 
 @app.route('/list/<list_id>', methods=['DELETE'])
@@ -85,7 +100,7 @@ def create_todo():
 
 
 @app.route('/todo/<todo_id>/set-completed', methods=['POST'])
-def set_completed_status(todo_id):
+def set_completed_status_todo(todo_id):
     try:
         new_completed = request.get_json()['completed']
         todo = Todo.query.get(todo_id)
